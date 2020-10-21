@@ -1,0 +1,44 @@
+#updated codes from Jesson for extracting Haver data
+
+# Import python libraries
+import Haver as hv #Haver API
+import pandas as pd
+
+# Create a list of CECL country codes
+
+cecl_country_codes = ['AFG', 'ARM', 'AZE', 'BAN', 'BHU', 'CAM', 'PRC', 'FIJ', 'GEO', 'IND', 'INO',
+                      'KAZ', 'KIR', 'KGZ', 'LAO', 'MLD', 'RMI', 'FSM', 'MON', 'MYA', 'NEP', 'PAK',
+                      'PAL', 'PNG', 'PHI', 'SAM', 'SOL', 'SRI', 'TAJ', 'THA', 'TIM', 'TON', 'TKM',
+                      'TUV', 'UZB', 'VAN', 'VIE']
+
+# Create a list of Haver country codes
+haver_country_codes = ['A512', 'A911', 'A912', 'A513', 'A514', 'A522', 'A924', 'A819', 'A915', 'A534',
+                       'A536', 'A916', 'A826', 'A917', 'A544', 'A556', 'A867', 'A868', 'A948', 'A518',
+                       'A558', 'A564', 'A565', 'A853', 'A566', 'A862', 'A813', 'A524', 'A923', 'A578',
+                       'A537', 'A866', 'A925', 'A869', 'A927', 'A846', 'A582']
+
+# Create a list of variables
+variables = ['Real GDP growth', 'Nominal GDP in USD billion', 'GDP per capita (USD)', 'Inflation', 'CPI',
+             'CAB in USD billion', 'CAB share in GDP',  'Budget balance in LCU billion', 'Budget balance share in GDP']
+
+# Create a list of corresponding variable codes
+vcodes = ['GPCP','GDPD', 'GPRD','PCIP', 'PCI', 'BCD', 'BCDS', 'GGL', 'GGLS']
+
+# Create a list of Haver codes
+dict = {}
+for i in variables:
+    dict[i] = []
+    index = variables.index(i)
+    for code in haver_country_codes:
+        dict[i].append(code + vcodes[index])
+
+writer = pd.ExcelWriter('CECL-IMFWEO-update.xlsx', engine='xlsxwriter')
+
+# Web scrape data from Haver API and export it in Excel
+for i in variables:
+    df = hv.data(dict[i], database='IMFWEO', startdate='2008-01-01')
+    df.columns = cecl_country_codes
+    df = df.transpose()
+    df.to_excel(writer, sheet_name=i, header=True, index=True, na_rep='...')
+
+writer.save()
